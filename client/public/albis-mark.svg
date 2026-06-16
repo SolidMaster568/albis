@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ALBIS mark">
+  <rect width="64" height="64" rx="14" fill="#4F46E5"/>
+  <path d="M17 44 31.8 14 47 44h-8.4l-2.4-5.4H27.5L25 44h-8Zm13.2-12h3.5L32 27.9 30.2 32Z" fill="#FFFFFF"/>
+  <circle cx="47" cy="17" r="5" fill="#22C55E"/>
+</svg>

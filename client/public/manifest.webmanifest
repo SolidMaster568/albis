@@ -1,0 +1,17 @@
+{
+  "name": "ALBIS",
+  "short_name": "ALBIS",
+  "description": "Family operations manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/albis-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
