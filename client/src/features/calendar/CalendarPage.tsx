@@ -1,6 +1,8 @@
 import AddIcon from '@mui/icons-material/Add';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
@@ -102,7 +104,7 @@ const parseCalendarId = (id: string) => {
   return { kind, itemId };
 };
 
-export const CalendarPage = () => {
+export const CalendarPage = ({ initialFilter = 'all' }: { initialFilter?: CalendarFilter }) => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -114,7 +116,7 @@ export const CalendarPage = () => {
     error: taskError
   } = useAppSelector((state) => state.tasks);
   const family = useAppSelector((state) => state.family.family ?? state.auth.family);
-  const [filter, setFilter] = useState<CalendarFilter>('all');
+  const [filter, setFilter] = useState<CalendarFilter>(initialFilter);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [initialDate, setInitialDate] = useState<Date | null>(null);
@@ -131,6 +133,10 @@ export const CalendarPage = () => {
       dispatch(fetchCurrentFamily());
     }
   }, [dispatch, family]);
+
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
   const openTasks = useMemo(
     () => tasks.filter((task) => task.status !== 'Completed'),
@@ -180,16 +186,19 @@ export const CalendarPage = () => {
       visibleItems.map((item) => {
         if (item.kind === 'event') {
           const tone = getEventTone(item.type);
+          const backgroundColor = alpha(tone.color, theme.palette.mode === 'light' ? 0.12 : 0.24);
+          const borderColor = alpha(tone.color, theme.palette.mode === 'light' ? 0.16 : 0.26);
 
           return {
             id: item.id,
             title: item.title,
             start: item.date,
             classNames: ['albis-calendar-item', 'albis-calendar-item-event'],
-            backgroundColor: tone.color,
-            borderColor: tone.color,
-            textColor: '#FFFFFF',
+            backgroundColor,
+            borderColor,
+            textColor: theme.palette.text.primary,
             extendedProps: {
+              accentColor: tone.color,
               kind: 'event',
               type: item.type,
               description: item.description
@@ -198,17 +207,19 @@ export const CalendarPage = () => {
         }
 
         const tone = getTaskTone(item.priority);
+        const backgroundColor = alpha(tone.color, theme.palette.mode === 'light' ? 0.06 : 0.14);
+        const borderColor = alpha(tone.color, theme.palette.mode === 'light' ? 0.1 : 0.2);
 
         return {
           id: item.id,
           title: item.title,
           start: item.date,
           classNames: ['albis-calendar-item', 'albis-calendar-item-task'],
-          backgroundColor:
-            theme.palette.mode === 'light' ? tone.soft : alpha(tone.color, 0.16),
-          borderColor: tone.color,
-          textColor: tone.color,
+          backgroundColor,
+          borderColor,
+          textColor: theme.palette.text.primary,
           extendedProps: {
+            accentColor: tone.color,
             kind: 'task',
             priority: item.priority,
             status: item.raw.status,
@@ -259,6 +270,7 @@ export const CalendarPage = () => {
       ),
     [events]
   );
+  const isEventsRoute = initialFilter === 'events';
 
   const closeEventDialog = () => {
     setEventDialogOpen(false);
@@ -421,31 +433,47 @@ export const CalendarPage = () => {
   const renderEventContent = (arg: EventContentArg) => {
     const kind = arg.event.extendedProps.kind as 'event' | 'task';
     const isTask = kind === 'task';
-    const label =
+    const label = isTask ? 'Task' : 'Event';
+    const detail =
       kind === 'event'
         ? (arg.event.extendedProps.type as EventType)
-        : `${arg.event.extendedProps.priority as TaskPriority} task`;
-    const color =
-      kind === 'event'
+        : `${arg.event.extendedProps.priority as TaskPriority} priority`;
+    const accentColor =
+      (arg.event.extendedProps.accentColor as string | undefined) ??
+      (kind === 'event'
         ? getEventTone(arg.event.extendedProps.type as EventType).color
-        : getTaskTone(arg.event.extendedProps.priority as TaskPriority).color;
+        : getTaskTone(arg.event.extendedProps.priority as TaskPriority).color);
 
     return (
       <Stack
         direction="row"
-        spacing={0.75}
+        spacing={0.8}
         alignItems="center"
         sx={{
           minWidth: 0,
           width: '100%',
-          color: isTask ? color : '#FFFFFF'
+          color: 'text.primary'
         }}
       >
-        {isTask ? (
-          <AssignmentTurnedInOutlinedIcon sx={{ fontSize: 14, flexShrink: 0 }} />
-        ) : (
-          <EventAvailableOutlinedIcon sx={{ fontSize: 14, flexShrink: 0 }} />
-        )}
+        <Box
+          sx={{
+            width: 20,
+            height: 20,
+            borderRadius: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: alpha(accentColor, theme.palette.mode === 'light' ? 0.14 : 0.26),
+            color: accentColor,
+            flexShrink: 0
+          }}
+        >
+          {isTask ? (
+            <ChecklistOutlinedIcon sx={{ fontSize: 14 }} />
+          ) : (
+            <CalendarMonthOutlinedIcon sx={{ fontSize: 14 }} />
+          )}
+        </Box>
         <Typography
           component="span"
           sx={{
@@ -458,6 +486,7 @@ export const CalendarPage = () => {
             fontWeight: 800,
             lineHeight: 1.4
           }}
+          title={detail}
         >
           {isTask ? 'Due: ' : ''}
           {arg.event.title}
@@ -465,9 +494,9 @@ export const CalendarPage = () => {
         <Typography
           component="span"
           sx={{
-            border: 1,
-            borderColor: isTask ? color : 'rgba(255, 255, 255, 0.45)',
+            bgcolor: alpha(accentColor, theme.palette.mode === 'light' ? 0.1 : 0.2),
             borderRadius: 0.75,
+            color: accentColor,
             display: { xs: 'none', md: 'inline-flex' },
             flexShrink: 0,
             fontSize: 9,
@@ -491,9 +520,13 @@ export const CalendarPage = () => {
   return (
     <Box>
       <PageHeader
-        title="Calendar"
-        eyebrow="Family rhythm"
-        subtitle="Events and task due dates belong together in the planning view, while staying separate as data."
+        title={isEventsRoute ? 'Events' : 'Calendar'}
+        eyebrow={isEventsRoute ? 'Family schedule' : 'Family rhythm'}
+        subtitle={
+          isEventsRoute
+            ? 'Focus on school, medical, birthday and activity events across the family.'
+            : 'Events and task due dates belong together in the planning view, while staying separate as data.'
+        }
         action={
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
             <Button
@@ -534,8 +567,12 @@ export const CalendarPage = () => {
           }}
         >
           <WorkspacePanel
-            title="Planning Calendar"
-            subtitle="Click a date to create an event. Drag events or task due dates to reschedule."
+            title={isEventsRoute ? 'Event Calendar' : 'Planning Calendar'}
+            subtitle={
+              isEventsRoute
+                ? 'Click a date to create an event. Switch filters when you need task due dates too.'
+                : 'Click a date to create an event. Drag events or task due dates to reschedule.'
+            }
             action={
               <ToggleButtonGroup
                 value={filter}
@@ -544,8 +581,18 @@ export const CalendarPage = () => {
                 size="small"
               >
                 <ToggleButton value="all">All</ToggleButton>
-                <ToggleButton value="events">Events</ToggleButton>
-                <ToggleButton value="tasks">Tasks</ToggleButton>
+                <ToggleButton value="events">
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <CalendarMonthOutlinedIcon sx={{ fontSize: 16 }} />
+                    <span>Events</span>
+                  </Stack>
+                </ToggleButton>
+                <ToggleButton value="tasks">
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <ChecklistOutlinedIcon sx={{ fontSize: 16 }} />
+                    <span>Tasks</span>
+                  </Stack>
+                </ToggleButton>
               </ToggleButtonGroup>
             }
           >

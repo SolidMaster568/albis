@@ -114,7 +114,7 @@ a {
   border-radius: 6px;
   box-shadow: none;
   cursor: pointer;
-  padding: 4px 7px;
+  padding: 3px 6px;
 }
 
 .albis-calendar .fc-daygrid-event {
@@ -122,25 +122,18 @@ a {
   color: inherit;
 }
 
-.albis-calendar .fc-daygrid-event.albis-calendar-item-event,
-.albis-calendar .fc-timegrid-event.albis-calendar-item-event {
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+.albis-calendar .fc-daygrid-event.albis-calendar-item,
+.albis-calendar .fc-timegrid-event.albis-calendar-item {
+  backdrop-filter: saturate(1.1);
 }
 
-.albis-calendar .fc-daygrid-event.albis-calendar-item-task,
-.albis-calendar .fc-timegrid-event.albis-calendar-item-task {
-  border-style: dashed !important;
-  border-width: 1.5px !important;
-  box-shadow: inset 3px 0 0 currentColor;
-}
-
-.albis-calendar .fc-list-event.albis-calendar-item-event .fc-list-event-dot {
+.albis-calendar .fc-list-event.albis-calendar-item .fc-list-event-dot {
   border-color: currentColor;
 }
 
-.albis-calendar .fc-list-event.albis-calendar-item-task .fc-list-event-dot {
-  border-color: currentColor;
-  border-style: dashed;
+.albis-calendar .fc-list-event.albis-calendar-item-task .fc-list-event-title::before {
+  content: "Task: ";
+  font-weight: 900;
 }
 
 .albis-calendar .fc-list {

@@ -3,6 +3,7 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import ChecklistOutlinedIcon from '@mui/icons-material/ChecklistOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import FamilyRestroomOutlinedIcon from '@mui/icons-material/FamilyRestroomOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
@@ -42,6 +43,7 @@ const navGroups = [
     items: [
       { label: 'Dashboard', path: '/', icon: <DashboardOutlinedIcon /> },
       { label: 'Tasks', path: '/tasks', icon: <ChecklistOutlinedIcon /> },
+      { label: 'Events', path: '/events', icon: <EventAvailableOutlinedIcon /> },
       { label: 'Calendar', path: '/calendar', icon: <CalendarMonthOutlinedIcon /> },
       { label: 'Reminders', path: '/reminders', icon: <NotificationsActiveOutlinedIcon /> }
     ]

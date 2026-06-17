@@ -166,7 +166,7 @@ const buildTheme = (mode: PaletteMode) =>
 
 export const ColorModeProvider = ({ children }: { children: ReactNode }) => {
   const [mode, setMode] = useState<PaletteMode>(
-    (localStorage.getItem('albis_color_mode') as PaletteMode | null) ?? 'light'
+    (localStorage.getItem('albis_color_mode') as PaletteMode | null) ?? 'dark'
   );
 
   const value = useMemo(
