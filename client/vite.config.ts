@@ -19,12 +19,12 @@ export default defineConfig({
             return 'react';
           }
 
-          if (id.includes('@mui') || id.includes('@emotion')) {
-            return 'mui';
+          if (id.includes('@mui/x-charts')) {
+            return 'charts';
           }
 
-          if (id.includes('recharts')) {
-            return 'charts';
+          if (id.includes('@mui') || id.includes('@emotion')) {
+            return 'mui';
           }
 
           if (id.includes('@reduxjs') || id.includes('react-redux')) {

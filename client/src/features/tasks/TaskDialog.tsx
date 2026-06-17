@@ -13,9 +13,9 @@ import {
   TextField
 } from '@mui/material';
 import { format } from 'date-fns';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import type { Family, Task } from '../../types/domain';
+import type { Event, Family, Task } from '../../types/domain';
 import type { TaskFormValues } from '../../types/forms';
 
 const priorities = ['Low', 'Medium', 'High'] as const;
@@ -27,6 +27,7 @@ const defaultValues: TaskFormValues = {
   priority: 'Medium',
   dueDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
   assignedTo: '',
+  relatedEvent: '',
   status: 'Pending'
 };
 
@@ -34,7 +35,8 @@ const toFormValues = (task: Task | null, family: Family | null): TaskFormValues 
   if (!task) {
     return {
       ...defaultValues,
-      assignedTo: family?.members[0]?.user._id ?? ''
+      assignedTo: family?.members[0]?.user._id ?? '',
+      relatedEvent: ''
     };
   }
 
@@ -44,6 +46,7 @@ const toFormValues = (task: Task | null, family: Family | null): TaskFormValues 
     priority: task.priority,
     dueDate: format(new Date(task.dueDate), "yyyy-MM-dd'T'HH:mm"),
     assignedTo: task.assignedTo._id,
+    relatedEvent: task.relatedEvent?._id ?? '',
     status: task.status
   };
 };
@@ -52,6 +55,9 @@ export const TaskDialog = ({
   open,
   task,
   family,
+  events = [],
+  initialDueDate,
+  initialRelatedEventId,
   saving,
   onClose,
   onSubmit
@@ -59,22 +65,46 @@ export const TaskDialog = ({
   open: boolean;
   task: Task | null;
   family: Family | null;
+  events?: Event[];
+  initialDueDate?: Date | null;
+  initialRelatedEventId?: string | null;
   saving: boolean;
   onClose: () => void;
   onSubmit: (values: TaskFormValues) => void;
 }) => {
+  const eventOptions = useMemo(
+    () => [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [events]
+  );
+
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors }
   } = useForm<TaskFormValues>({
-    defaultValues: toFormValues(task, family)
+    defaultValues: {
+      ...toFormValues(task, family),
+      dueDate:
+        !task && initialDueDate
+          ? format(initialDueDate, "yyyy-MM-dd'T'HH:mm")
+          : toFormValues(task, family).dueDate,
+      relatedEvent:
+        !task && initialRelatedEventId
+          ? initialRelatedEventId
+          : toFormValues(task, family).relatedEvent
+    }
   });
 
   useEffect(() => {
-    reset(toFormValues(task, family));
-  }, [family, reset, task]);
+    const values = toFormValues(task, family);
+    reset({
+      ...values,
+      dueDate:
+        !task && initialDueDate ? format(initialDueDate, "yyyy-MM-dd'T'HH:mm") : values.dueDate,
+      relatedEvent: !task && initialRelatedEventId ? initialRelatedEventId : values.relatedEvent
+    });
+  }, [family, initialDueDate, initialRelatedEventId, reset, task]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -168,11 +198,30 @@ export const TaskDialog = ({
                 <Select {...field} label="Assigned member">
                   {family?.members.map((member) => (
                     <MenuItem key={member.user._id} value={member.user._id}>
-                      {member.user.name} · {member.role}
+                      {member.user.name} - {member.role}
                     </MenuItem>
                   ))}
                 </Select>
                 <FormHelperText>{errors.assignedTo?.message}</FormHelperText>
+              </FormControl>
+            )}
+          />
+          <Controller
+            name="relatedEvent"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth>
+                <InputLabel>Related event</InputLabel>
+                <Select {...field} label="Related event" value={field.value ?? ''}>
+                  <MenuItem value="">
+                    <em>No related event</em>
+                  </MenuItem>
+                  {eventOptions.map((event) => (
+                    <MenuItem key={event._id} value={event._id}>
+                      {event.title} - {format(new Date(event.date), 'MMM d, h:mm a')}
+                    </MenuItem>
+                  ))}
+                </Select>
               </FormControl>
             )}
           />

@@ -15,6 +15,7 @@ import {
 import { format } from 'date-fns';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import type { Event } from '../../types/domain';
 import type { EventFormValues } from '../../types/forms';
 
 const eventTypes = ['School Event', 'Medical Appointment', 'Birthday', 'Activity'] as const;
@@ -26,13 +27,33 @@ const defaultValues: EventFormValues = {
   type: 'Activity'
 };
 
+const buildDefaultValues = (initialDate?: Date | null, event?: Event | null): EventFormValues => {
+  if (event) {
+    return {
+      title: event.title,
+      description: event.description ?? '',
+      date: format(new Date(event.date), "yyyy-MM-dd'T'HH:mm"),
+      type: event.type
+    };
+  }
+
+  return {
+    ...defaultValues,
+    date: format(initialDate ?? new Date(), "yyyy-MM-dd'T'HH:mm")
+  };
+};
+
 export const EventDialog = ({
   open,
+  initialDate,
+  event,
   saving,
   onClose,
   onSubmit
 }: {
   open: boolean;
+  initialDate?: Date | null;
+  event?: Event | null;
   saving: boolean;
   onClose: () => void;
   onSubmit: (values: EventFormValues) => void;
@@ -43,18 +64,18 @@ export const EventDialog = ({
     reset,
     formState: { errors }
   } = useForm<EventFormValues>({
-    defaultValues
+    defaultValues: buildDefaultValues(initialDate, event)
   });
 
   useEffect(() => {
     if (open) {
-      reset(defaultValues);
+      reset(buildDefaultValues(initialDate, event));
     }
-  }, [open, reset]);
+  }, [event, initialDate, open, reset]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Create Event</DialogTitle>
+      <DialogTitle>{event ? 'Edit Event' : 'Create Event'}</DialogTitle>
       <DialogContent>
         <Stack
           component="form"
@@ -123,7 +144,7 @@ export const EventDialog = ({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button variant="contained" type="submit" form="event-form" disabled={saving}>
-          Create event
+          {event ? 'Save event' : 'Create event'}
         </Button>
       </DialogActions>
     </Dialog>

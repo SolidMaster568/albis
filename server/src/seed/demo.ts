@@ -66,6 +66,37 @@ const seed = async () => {
 
   const now = new Date();
 
+  const events = await Event.create([
+    {
+      family: family._id,
+      title: 'Emma school trip',
+      description: 'Class trip to the science museum. Permission slip and packed lunch required.',
+      date: addDays(now, 1),
+      type: 'School Event'
+    },
+    {
+      family: family._id,
+      title: 'Parent teacher meeting',
+      description: 'Check in with Emma teacher about next term goals.',
+      date: addDays(now, 2),
+      type: 'School Event'
+    },
+    {
+      family: family._id,
+      title: 'Birthday party',
+      description: 'Lucas party at the indoor climbing gym.',
+      date: addDays(now, 6),
+      type: 'Birthday'
+    },
+    {
+      family: family._id,
+      title: 'Dentist appointment',
+      description: 'Family cleaning appointments.',
+      date: addDays(now, 9),
+      type: 'Medical Appointment'
+    }
+  ]);
+
   const tasks = await Task.create([
     {
       family: family._id,
@@ -75,6 +106,7 @@ const seed = async () => {
       dueDate: addDays(now, 1),
       status: 'In Progress',
       assignedTo: sarah._id,
+      relatedEvent: events[0]._id,
       createdBy: john._id
     },
     {
@@ -105,31 +137,8 @@ const seed = async () => {
       dueDate: addDays(now, 5),
       status: 'Completed',
       assignedTo: sarah._id,
+      relatedEvent: events[2]._id,
       createdBy: john._id
-    }
-  ]);
-
-  const events = await Event.create([
-    {
-      family: family._id,
-      title: 'Parent teacher meeting',
-      description: 'Check in with Emma teacher about next term goals.',
-      date: addDays(now, 2),
-      type: 'School Event'
-    },
-    {
-      family: family._id,
-      title: 'Birthday party',
-      description: 'Lucas party at the indoor climbing gym.',
-      date: addDays(now, 6),
-      type: 'Birthday'
-    },
-    {
-      family: family._id,
-      title: 'Dentist appointment',
-      description: 'Family cleaning appointments.',
-      date: addDays(now, 9),
-      type: 'Medical Appointment'
     }
   ]);
 

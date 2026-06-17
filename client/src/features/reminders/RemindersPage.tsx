@@ -45,7 +45,11 @@ export const RemindersPage = () => {
 
   return (
     <Box>
-      <PageHeader title="Reminder Center" />
+      <PageHeader
+        title="Reminder Center"
+        eyebrow="Forget-me-not"
+        subtitle="Keep upcoming family details visible before they become urgent."
+      />
       <Stack spacing={2}>
         <ErrorAlert message={error} />
         {items.length === 0 ? (

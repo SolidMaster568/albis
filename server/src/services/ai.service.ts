@@ -19,6 +19,16 @@ export const buildMockAssistantResponse = (
   const pendingTasks = tasks.filter((task) => task.status !== 'Completed').slice(0, 4);
   const upcomingEvents = events.slice(0, 4);
   const upcomingReminders = reminders.slice(0, 4);
+  const linkedPreparation = pendingTasks
+    .map((task) => {
+      const relatedEvent = events.find(
+        (event) => task.relatedEvent?.toString() === event._id.toString()
+      );
+
+      return relatedEvent ? `${task.title} supports ${relatedEvent.title}` : null;
+    })
+    .filter((item): item is string => Boolean(item))
+    .slice(0, 3);
 
   const taskSummary =
     pendingTasks.length > 0
@@ -38,9 +48,13 @@ export const buildMockAssistantResponse = (
           .map((reminder) => `${reminder.title} (${formatDate(reminder.date)})`)
           .join('; ')
       : 'No urgent reminders are waiting';
+  const preparationSummary =
+    linkedPreparation.length > 0
+      ? ` Linked prep: ${linkedPreparation.join('; ')}.`
+      : '';
 
   return {
     prompt,
-    response: `Here is the family operations brief: tasks to handle: ${taskSummary}. Upcoming events: ${eventSummary}. Reminders: ${reminderSummary}. Suggested next step: assign owners for anything still pending and block 20 minutes today for preparation.`
+    response: `Here is the family operations brief: tasks to handle: ${taskSummary}. Upcoming events: ${eventSummary}. Reminders: ${reminderSummary}.${preparationSummary} Suggested next step: assign owners for anything still pending and block 20 minutes today for preparation.`
   };
 };

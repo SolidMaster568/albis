@@ -32,6 +32,7 @@ export type Task = {
   dueDate: string;
   status: TaskStatus;
   assignedTo: User;
+  relatedEvent?: Pick<Event, '_id' | 'title' | 'date' | 'type'> | null;
   createdBy: string;
 };
 

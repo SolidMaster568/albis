@@ -1,11 +1,13 @@
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import {
   Box,
   Card,
   CardActions,
   CardContent,
+  Chip,
   IconButton,
   Stack,
   ToggleButton,
@@ -20,6 +22,7 @@ import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
 import { PriorityChip, StatusChip } from '../../components/StatusChip';
 import { formatDateTime } from '../../components/date';
+import { fetchEvents } from '../calendar/calendarSlice';
 import { fetchCurrentFamily } from '../family/familySlice';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import type { Task, TaskStatus } from '../../types/domain';
@@ -34,6 +37,7 @@ const filters: TaskFilter[] = ['All', 'Pending', 'In Progress', 'Completed'];
 export const TasksPage = () => {
   const dispatch = useAppDispatch();
   const { items, status, saving, error } = useAppSelector((state) => state.tasks);
+  const { events } = useAppSelector((state) => state.calendar);
   const family = useAppSelector((state) => state.family.family ?? state.auth.family);
   const [filter, setFilter] = useState<TaskFilter>('All');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,6 +45,7 @@ export const TasksPage = () => {
 
   useEffect(() => {
     dispatch(fetchTasks());
+    dispatch(fetchEvents());
     if (!family) {
       dispatch(fetchCurrentFamily());
     }
@@ -79,6 +84,8 @@ export const TasksPage = () => {
     <Box>
       <PageHeader
         title="Tasks"
+        eyebrow="Ownership"
+        subtitle="Track household work with clear owners, due dates and priority."
         action={
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             <ToggleButtonGroup
@@ -130,13 +137,31 @@ export const TasksPage = () => {
             }}
           >
             {filteredTasks.map((task) => (
-              <Card key={task._id} variant="outlined">
-                <CardContent>
+              <Card
+                key={task._id}
+                variant="outlined"
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'border-color 160ms ease, transform 160ms ease',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-1px)'
+                  }
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
                   <Stack spacing={2}>
                     <Stack direction="row" justifyContent="space-between" spacing={2}>
-                      <Typography variant="h6" fontWeight={900}>
-                        {task.title}
-                      </Typography>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="h6" fontWeight={900} noWrap>
+                          {task.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Family task
+                        </Typography>
+                      </Box>
                       <Stack direction="row" spacing={1} alignItems="flex-start">
                         <PriorityChip priority={task.priority} />
                         <StatusChip status={task.status} />
@@ -145,6 +170,21 @@ export const TasksPage = () => {
                     <Typography color="text.secondary" variant="body2">
                       {task.description || 'No description'}
                     </Typography>
+                    {task.relatedEvent && (
+                      <Chip
+                        icon={<EventAvailableOutlinedIcon />}
+                        label={`Event: ${task.relatedEvent.title}`}
+                        variant="outlined"
+                        sx={{
+                          alignSelf: 'flex-start',
+                          maxWidth: '100%',
+                          '& .MuiChip-label': {
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }
+                        }}
+                      />
+                    )}
                     <Stack direction="row" justifyContent="space-between" spacing={2}>
                       <Box>
                         <Typography variant="caption" color="text.secondary">
@@ -161,7 +201,15 @@ export const TasksPage = () => {
                     </Stack>
                   </Stack>
                 </CardContent>
-                <CardActions sx={{ justifyContent: 'flex-end' }}>
+                <CardActions
+                  sx={{
+                    justifyContent: 'flex-end',
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    px: 2,
+                    py: 1
+                  }}
+                >
                   <Tooltip title="Edit task">
                     <IconButton
                       onClick={() => {
@@ -187,6 +235,7 @@ export const TasksPage = () => {
         open={dialogOpen}
         task={editingTask}
         family={family}
+        events={events}
         saving={saving}
         onClose={handleClose}
         onSubmit={handleSubmit}

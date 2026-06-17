@@ -27,6 +27,7 @@ export type TaskFormValues = {
   priority: TaskPriority;
   dueDate: string;
   assignedTo: string;
+  relatedEvent: string;
   status: TaskStatus;
 };
 

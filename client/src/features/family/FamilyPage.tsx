@@ -17,8 +17,10 @@ import { isAfter } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorAlert } from '../../components/ErrorAlert';
+import { LoadBalanceBar, type LoadBalanceEntry } from '../../components/LoadBalanceBar';
 import { LoadingState } from '../../components/LoadingState';
 import { PageHeader } from '../../components/PageHeader';
+import { WorkspacePanel } from '../../components/WorkspacePanel';
 import { fetchEvents } from '../calendar/calendarSlice';
 import { fetchTasks } from '../tasks/tasksSlice';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
@@ -48,6 +50,24 @@ export const FamilyPage = () => {
     () => events.filter((event) => isAfter(new Date(event.date), new Date())).length,
     [events]
   );
+  const loadEntries = useMemo<LoadBalanceEntry[]>(
+    () =>
+      currentFamily?.members.map((member) => {
+        const assignedTasks = tasks.filter(
+          (task) => task.assignedTo._id === member.user._id && task.status !== 'Completed'
+        ).length;
+
+        return {
+          id: member.user._id,
+          name: member.user.name,
+          role: member.role,
+          avatar: member.user.avatar,
+          value: assignedTasks,
+          helper: `${assignedTasks} active tasks`
+        };
+      }) ?? [],
+    [currentFamily?.members, tasks]
+  );
 
   const handleInvite = (values: InviteFormValues) => {
     dispatch(inviteMember(values)).then(() => setInviteOpen(false));
@@ -61,6 +81,8 @@ export const FamilyPage = () => {
     <Box>
       <PageHeader
         title="Family Members"
+        eyebrow="Shared responsibility"
+        subtitle="Make ownership, roles and invisible household work easy to see."
         action={
           <Button
             variant="contained"
@@ -77,9 +99,12 @@ export const FamilyPage = () => {
           <EmptyState title="No family workspace found" />
         ) : (
           <>
-            <Typography variant="h6" fontWeight={900}>
-              {currentFamily.name}
-            </Typography>
+            <WorkspacePanel
+              title={currentFamily.name}
+              subtitle="A quick read on who is carrying what right now."
+            >
+              <LoadBalanceBar entries={loadEntries} />
+            </WorkspacePanel>
             <Box
               sx={{
                 display: 'grid',

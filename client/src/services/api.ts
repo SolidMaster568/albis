@@ -116,6 +116,15 @@ export const api = {
       method: 'POST',
       body
     }),
+  updateEvent: (id: string, body: EventFormValues) =>
+    request<Event>(`/events/${id}`, {
+      method: 'PUT',
+      body
+    }),
+  deleteEvent: (id: string) =>
+    request<void>(`/events/${id}`, {
+      method: 'DELETE'
+    }),
   getReminders: () => request<Reminder[]>('/reminders'),
   getDashboardSummary: () => request<DashboardSummary>('/dashboard/summary'),
   chat: (prompt: string) =>

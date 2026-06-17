@@ -1,14 +1,39 @@
+import { Types } from 'mongoose';
 import { Activity } from '../models/Activity.js';
+import { Event } from '../models/Event.js';
 import { Notification } from '../models/Notification.js';
 import { Task } from '../models/Task.js';
 import { ApiError } from '../middleware/errorHandler.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { getFamilyForUser } from '../utils/familyAccess.js';
 
+const taskPopulate = [
+  { path: 'assignedTo', select: 'name email avatar' },
+  { path: 'relatedEvent', select: 'title date type' }
+];
+
+const resolveRelatedEvent = async (relatedEvent: unknown, familyId: Types.ObjectId) => {
+  if (!relatedEvent) {
+    return null;
+  }
+
+  if (typeof relatedEvent !== 'string' || !Types.ObjectId.isValid(relatedEvent)) {
+    throw new ApiError(400, 'Related event is invalid');
+  }
+
+  const event = await Event.findOne({ _id: relatedEvent, family: familyId }).select('_id');
+
+  if (!event) {
+    throw new ApiError(400, 'Related event must belong to this family');
+  }
+
+  return event._id;
+};
+
 export const getTasks = asyncHandler(async (req, res) => {
   const familyId = await getFamilyForUser(req.user!.id);
   const tasks = await Task.find({ family: familyId })
-    .populate('assignedTo', 'name email avatar')
+    .populate(taskPopulate)
     .sort({ dueDate: 1 });
 
   res.json(tasks);
@@ -16,11 +41,13 @@ export const getTasks = asyncHandler(async (req, res) => {
 
 export const createTask = asyncHandler(async (req, res) => {
   const familyId = await getFamilyForUser(req.user!.id);
-  const { title, description, priority, dueDate, assignedTo, status } = req.body;
+  const { title, description, priority, dueDate, assignedTo, status, relatedEvent } = req.body;
 
   if (!title || !dueDate || !assignedTo) {
     throw new ApiError(400, 'Title, due date and assigned member are required');
   }
+
+  const resolvedRelatedEvent = await resolveRelatedEvent(relatedEvent, familyId);
 
   const task = await Task.create({
     family: familyId,
@@ -29,6 +56,7 @@ export const createTask = asyncHandler(async (req, res) => {
     priority,
     dueDate,
     assignedTo,
+    relatedEvent: resolvedRelatedEvent,
     status,
     createdBy: req.user!.id
   });
@@ -47,16 +75,22 @@ export const createTask = asyncHandler(async (req, res) => {
     type: 'Task Assignment'
   });
 
-  const populatedTask = await Task.findById(task._id).populate('assignedTo', 'name email avatar');
+  const populatedTask = await Task.findById(task._id).populate(taskPopulate);
   res.status(201).json(populatedTask);
 });
 
 export const updateTask = asyncHandler(async (req, res) => {
   const familyId = await getFamilyForUser(req.user!.id);
-  const task = await Task.findOneAndUpdate({ _id: req.params.id, family: familyId }, req.body, {
+  const updates = { ...req.body };
+
+  if (Object.prototype.hasOwnProperty.call(updates, 'relatedEvent')) {
+    updates.relatedEvent = await resolveRelatedEvent(updates.relatedEvent, familyId);
+  }
+
+  const task = await Task.findOneAndUpdate({ _id: req.params.id, family: familyId }, updates, {
     new: true,
     runValidators: true
-  }).populate('assignedTo', 'name email avatar');
+  }).populate(taskPopulate);
 
   if (!task) {
     throw new ApiError(404, 'Task not found');

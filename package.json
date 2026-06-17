@@ -3,18 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "description": "ALBIS - AI Operations Manager for families",
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "scripts": {
-    "dev": "npm run dev --workspace server",
-    "dev:client": "npm run dev --workspace client",
-    "dev:server": "npm run dev --workspace server",
-    "build": "npm run build --workspace server && npm run build --workspace client",
-    "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
-    "seed": "npm run seed --workspace server",
-    "lint": "npm run lint --workspace client"
+    "dev": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev",
+    "build": "npm --prefix server run build && npm --prefix client run build",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck",
+    "seed": "npm --prefix server run seed",
+    "lint": "npm --prefix client run lint",
+    "install:all": "npm --prefix server install && npm --prefix client install"
   },
   "engines": {
     "node": ">=20"

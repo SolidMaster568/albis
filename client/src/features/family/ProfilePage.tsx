@@ -29,7 +29,11 @@ export const ProfilePage = () => {
 
   return (
     <Box>
-      <PageHeader title="Profile" />
+      <PageHeader
+        title="Profile"
+        eyebrow="Account"
+        subtitle="Keep your family workspace identity current."
+      />
       <Stack spacing={2}>
         <ErrorAlert message={error} />
         <Card variant="outlined" sx={{ maxWidth: 680 }}>

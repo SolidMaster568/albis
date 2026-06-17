@@ -13,7 +13,7 @@ ALBIS is an AI Operations Manager for families. It helps parents coordinate task
 1. Install dependencies:
 
    ```bash
-   npm install
+   npm run install:all
    ```
 
 2. Configure the API:
@@ -80,6 +80,8 @@ API health: `http://localhost:5000/health`
 - `DELETE /api/tasks/:id`
 - `GET /api/events`
 - `POST /api/events`
+- `PUT /api/events/:id`
+- `DELETE /api/events/:id`
 - `GET /api/reminders`
 - `GET /api/dashboard/summary`
 - `POST /api/assistant/chat`
@@ -91,5 +93,6 @@ API health: `http://localhost:5000/health`
 ```bash
 npm run typecheck
 npm run build
-npm audit
+npm --prefix server audit
+npm --prefix client audit
 ```

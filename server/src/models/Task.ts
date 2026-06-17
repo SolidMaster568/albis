@@ -11,6 +11,7 @@ export interface ITask extends Document {
   dueDate: Date;
   status: TaskStatus;
   assignedTo: Types.ObjectId;
+  relatedEvent?: Types.ObjectId | null;
   createdBy: Types.ObjectId;
 }
 
@@ -27,6 +28,7 @@ const taskSchema = new Schema<ITask>(
       default: 'Pending'
     },
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    relatedEvent: { type: Schema.Types.ObjectId, ref: 'Event', default: null, index: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
   },
   { timestamps: true }

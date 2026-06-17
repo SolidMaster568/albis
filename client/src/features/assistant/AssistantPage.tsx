@@ -48,6 +48,8 @@ export const AssistantPage = () => {
     <Box>
       <PageHeader
         title="AI Assistant"
+        eyebrow="Ops copilot"
+        subtitle="Ask ALBIS to turn scattered family logistics into a concise next step."
         action={
           <Button
             variant="outlined"
